@@ -1,0 +1,14 @@
+# requirements.txt
+streamlit
+python-dotenv
+pandas
+matplotlib
+seaborn
+langchain
+langchain-openai
+langchain-google-genai
+langchain-community
+langgraph
+langchain-chroma
+pypdf
+streamlit
