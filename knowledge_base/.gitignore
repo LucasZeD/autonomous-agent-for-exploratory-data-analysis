@@ -1,1 +1,5 @@
-ECHO is on.
+# Datasets
+/data/
+/data_raw/
+archive.zip
+*.csv

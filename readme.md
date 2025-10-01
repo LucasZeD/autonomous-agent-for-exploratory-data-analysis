@@ -172,11 +172,16 @@ Este projeto possui um roteiro claro para a implementação de práticas de IA R
 ### 3. Privacidade (Privacy)
 * **Status Atual**: O DataFrame é processado em memória e as chaves de API são gerenciadas de forma segura.
 * **Próximos Passos**:
-    * **Ferramenta de Anonimização**: Adicionar um nó opcional no início do grafo para identificar e anonimizar Informações de Identificação Pessoal (PII) antes da análise, utilizando bibliotecas como `Microsoft Presidio`.
-    * **Política de Retenção de Dados**: Definir e comunicar de forma clara a política de retenção dos dados e históricos de conversa.
+    * **Ferramenta de Anonimização**: Adicionar um nó opcional no início do grafo para identificar e anonimizar Informações de Identificação Pessoal (PII) antes da análise
 
 ### 4. Confiabilidade e Robustez (Reliability & Robustness)
 * **Status Atual**: Em caso de erro na execução do código, o sistema retorna a mensagem de erro bruta ao usuário e para.
 * **Próximos Passos**:
     * **Ciclo de Auto-Correção**: Implementar um ciclo no grafo onde, em caso de falha, o nó de execução retorne ao nó de geração de código, informando a mensagem de erro. O LLM seria então instruído a corrigir o código anterior com base no erro.
     * **Validação de Código com AST**: Evoluir a sanitização de código de `regex` para uma análise via Árvore de Sintaxe Abstrata (`ast`), permitindo a criação de regras de segurança mais granulares e robustas.
+
+### 5. Logging e Auditoria
+* **Status Atual**: O feedback de erros é reativo e exibido diretamente na interface em caso de falha. Não há um sistema persistente de logs para análise posterior ou auditoria.
+* **Próximos Passos**:
+    * **Implementar Logging Estruturado**: Integrar uma biblioteca de logging para capturar eventos-chave da aplicação, como o início e o fim de cada nó do grafo, as decisões do planejador e o resultado (sucesso ou falha) da execução de ferramentas.
+    * **Criar Trilha de Auditoria**: Utilizar os logs para construir uma trilha de auditoria completa para cada consulta do usuário. Isso é crucial para a depuração de comportamentos inesperados e para aumentar a transparência sobre as operações do agente.
