@@ -60,3 +60,9 @@ Desktop.ini
 
 # Arquivos do Streamlit
 .streamlit/
+
+# Datasets
+/data/
+/data_raw/
+archive.zip
+*.csv
