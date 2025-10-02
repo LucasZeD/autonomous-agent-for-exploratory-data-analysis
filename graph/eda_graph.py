@@ -31,42 +31,46 @@ def plan_node(state: EdaGraphState, llm):
 def code_generation_node(state: EdaGraphState, llm):
     """Nó que gera código Python para executar o plano."""
     prompt = PromptTemplate.from_template(
-        """Você é um programador Python especialista em pandas, matplotlib e seaborn.
-        Com base no plano de análise, gere o código Python necessário para executar o PRÓXIMO passo.
-        Use a variável 'df' para se referir ao DataFrame.
+        """Você é um programador Python sênior, especialista em pandas, matplotlib e seaborn.
+        Sua tarefa é gerar um único script Python para executar o plano de análise de dados abaixo.
+        O script deve ser completo e autossuficiente para responder à pergunta do usuário.
 
-        **--- DIRETRIZES DE SAÍDA ---**
-        1. **Para Gráficos**: 
-            - Use plt.figure() para iniciar um novo gráfico.
-            - **NÃO use `plt.show()`**.
-            - Salve o gráfico em base64 na variável `fig_base64` como no exemplo:
+        **--- REGRAS CRÍTICAS DE SAÍDA ---**
+        Seu script DEVE produzir uma ou ambas as seguintes variáveis como resultado final:
+        1.  `result_data`: Use esta variável para armazenar qualquer resultado numérico ou textual final (ex: um DataFrame, uma contagem, uma correlação).
+            - Exemplo: `result_data = df['coluna'].describe()`
+        2.  `fig_base64`: Se o plano envolver a criação de um gráfico, esta variável DEVE conter a imagem do gráfico codificada em base64.
+            - **NUNCA use `plt.show()`**.
+            - Siga este exemplo de código para gerar `fig_base64`:
                 ```python
                 import io
                 import base64
                 import matplotlib.pyplot as plt
+                
                 plt.figure()
-                # ... seu código de plotagem ...
+                # --- SEU CÓDIGO DE PLOTAGEM AQUI ---
+                
                 buf = io.BytesIO()
                 plt.savefig(buf, format='png')
                 buf.seek(0)
                 fig_base64 = base64.b64encode(buf.read()).decode('utf-8')
                 plt.close()
                 ```
-        2. **Para Cálculos Numéricos**:
-            Se você calcular valores (contagens, médias, correlações, etc.),
-            armazene o resultado final (seja um DataFrame, uma Série ou um dicionário) em uma variável chamada `result_data`.
-            Exemplo: `result_data = df['Class'].value_counts()`
 
-        **--- REGRAS DE SEGURANÇA CRÍTICAS ---**
-        - **NUNCA** use bibliotecas ou funções que interajam com o sistema de arquivos ou sistema operacional, como `os`, `sys`, `subprocess`, `open()`, etc.
-        - Todo o código deve operar exclusivamente em memória usando as bibliotecas permitidas (pandas, matplotlib, seaborn, numpy).
-        - Não tente carregar ou salvar arquivos. O DataFrame 'df' já está em memória.
-        
-        Plano: {plan}
+        **--- REGRAS DE SEGURANÇA ---**
+        - NÃO use bibliotecas que interajam com o sistema, como `os`, `sys`, `subprocess`, `open()`.
+        - Opere exclusivamente em memória. O DataFrame já está carregado na variável `df`.
+
+        **--- CONTEXTO ---**
+        Plano de Análise:
+        {plan}
+
         Cabeçalho do DataFrame:
         {df_head}
-
-        Gere apenas o código Python, sem comentários, para o próximo passo do plano, respeitando TODAS as regras acima:"""
+        
+        **--- SCRIPT PYTHON ---**
+        Gere um único bloco de código Python que implemente o plano completo, seguindo TODAS as regras acima. O código deve ser limpo, sem comentários ou markdown.
+        """
     )
     chain = prompt | llm
     code = chain.invoke({"plan": state["plan"], "df_head": state["df_head"]}).content
