@@ -26,21 +26,22 @@ init_session_state()
 
 # --- BARRA LATERAL (CONFIGURAÇÕES) ---
 with st.sidebar:
-    st.header("Configurações")
+    st.header("⚙️ Configurações")
     
-    uploaded_csv = st.file_uploader("1. Carregue seu arquivo CSV", type="csv")
+    uploaded_csv = st.file_uploader("1. Faça o upload do seu CSV", type="csv")
     
     uploaded_pdfs = st.file_uploader(
-        "2. (Opcional) Carregue PDFs para a Base de Conhecimento (RAG)",
+        "2. (Opcional) Adicione PDFs de contexto (RAG)",
         type="pdf",
-        accept_multiple_files=True
+        accept_multiple_files=True,
+        help="Forneça documentos PDF que contenham informações sobre o seu CSV. O agente usará esses arquivos para dar respostas mais ricas e contextuais."
     )
     
-    llm_provider = st.selectbox("3. Escolha o provedor de LLM", ("Gemini", "GPT", "LocalLM"))
+    llm_provider = st.selectbox("3. Escolha o modelo de IA", ("Gemini", "GPT", "LocalLM"))
     
     api_key = None
     if llm_provider in ["GPT", "Gemini"]:
-        api_key = st.text_input(f"Insira a chave de API do {llm_provider}", type="password", help="Não é obrgiatório o uso de senha para o Gemini.")
+        api_key = st.text_input(f"Insira a chave de API do {llm_provider}", type="password", help="Não é obrigatório o uso de chave para o Gemini, o desenvolvedor já forneceu uma.")
 
     if st.button("🚀 Iniciar Agente"):
         if uploaded_csv is not None:
@@ -92,7 +93,7 @@ if st.session_state.graph_runner:
     st.info(f"Agente pronto! Faça perguntas sobre o arquivo `{uploaded_csv.name}`.")
     display_chat_history()
     
-    if prompt := st.chat_input("Ex: 'Qual a correlação entre as colunas V1 e Amount?'"):
+    if prompt := st.chat_input("Faça uma pergunta sobre seus dados..."):
         st.session_state.messages.append({"role": "user", "content": prompt, "lc_message": HumanMessage(content=prompt)})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -134,4 +135,11 @@ if st.session_state.graph_runner:
                 st.session_state.messages.append(assistant_message)
                 st.rerun()
 else:
-    st.info("Por favor, configure o agente na barra lateral (\">>>\") para começar a análise.")
+    st.markdown("### Bem-vindo ao Agente de Análise de Dados!")
+    st.markdown("Esta ferramenta permite que você converse com seus dados em arquivos CSV para extrair insights de forma rápida e intuitiva.")
+    st.markdown("#### Como Começar:")
+    st.markdown("1.  **Abra a barra lateral** no canto superior esquerdo (ícone `>>>`).")
+    st.markdown("2.  **Faça o upload** do seu arquivo CSV.")
+    st.markdown("3.  **Escolha o modelo** de IA que deseja usar.")
+    st.markdown("4.  **Insira a chave API** da IA que deseja usar.")
+    st.markdown("5.  Clique em **'Iniciar Agente'** e comece a fazer perguntas!")
