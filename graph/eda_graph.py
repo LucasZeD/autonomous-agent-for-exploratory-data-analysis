@@ -35,22 +35,27 @@ def code_generation_node(state: EdaGraphState, llm):
         Com base no plano de análise, gere o código Python necessário para executar o PRÓXIMO passo.
         Use a variável 'df' para se referir ao DataFrame.
 
-        **Diretrizes de Geração de Gráficos**:
-        - Use plt.figure() para iniciar um novo gráfico.
-        - **NÃO use `plt.show()`**.
-        - Salve o gráfico em base64 na variável `fig_base64` como no exemplo:
-        ```python
-        import io
-        import base64
-        import matplotlib.pyplot as plt
-        plt.figure()
-        # ... seu código de plotagem ...
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        fig_base64 = base64.b64encode(buf.read()).decode('utf-8')
-        plt.close()
-        ```
+        **--- DIRETRIZES DE SAÍDA ---**
+        1. **Para Gráficos**: 
+            - Use plt.figure() para iniciar um novo gráfico.
+            - **NÃO use `plt.show()`**.
+            - Salve o gráfico em base64 na variável `fig_base64` como no exemplo:
+                ```python
+                import io
+                import base64
+                import matplotlib.pyplot as plt
+                plt.figure()
+                # ... seu código de plotagem ...
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                fig_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                plt.close()
+                ```
+        2. **Para Cálculos Numéricos**:
+            Se você calcular valores (contagens, médias, correlações, etc.),
+            armazene o resultado final (seja um DataFrame, uma Série ou um dicionário) em uma variável chamada `result_data`.
+            Exemplo: `result_data = df['Class'].value_counts()`
 
         **--- REGRAS DE SEGURANÇA CRÍTICAS ---**
         - **NUNCA** use bibliotecas ou funções que interajam com o sistema de arquivos ou sistema operacional, como `os`, `sys`, `subprocess`, `open()`, etc.

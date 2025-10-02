@@ -79,7 +79,7 @@ class LLMFactory:
             return ChatOpenAI(
                 base_url="http://localhost:11434/v1",
                 api_key="ollama", # A API key pode ser qualquer string para Ollama
-                model_name="llama3" # Nome do modelo que você está servindo
+                model_name="gpt-oss:20b" # Nome do modelo que você está servindo
             )
         
         else:

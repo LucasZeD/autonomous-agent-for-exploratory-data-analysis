@@ -12,7 +12,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 st.set_page_config(page_title="Agente de Análise de CSV", layout="wide")
 
-st.title("🤖 Agente Metodológico para Análise de Dados (E.D.A.)")
+st.title("Agente para Análise de Dados (E.D.A.)")
 st.markdown("Desenvolvido com `LangGraph` para análises de alta acurácia.")
 
 # --- Inicialização do Estado da Sessão ---
@@ -40,7 +40,7 @@ with st.sidebar:
     
     api_key = None
     if llm_provider in ["GPT", "Gemini"]:
-        api_key = st.text_input(f"Insira a chave de API do {llm_provider}", type="password")
+        api_key = st.text_input(f"Insira a chave de API do {llm_provider}", type="password", help="Não é obrgiatório o uso de senha para o Gemini.")
 
     if st.button("🚀 Iniciar Agente"):
         if uploaded_csv is not None:
@@ -66,9 +66,27 @@ with st.sidebar:
 def display_chat_history():
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
+            # Expander para detalhes de raciocínio
+            if "details" in msg:
+                with st.expander("Ver Raciocínio do Agente."):
+                    st.markdown("##### Plano de Análise")
+                    st.markdown(msg["details"]["plan"], unsafe_allow_html=True)
+
+                    st.markdown("##### Código Executado")
+                    st.code(msg["details"]["code"], language="python")
+                    
+                    st.markdown("##### Resultado Bruto")
+                    # Remoção plot do gráfico
+                    raw_result = re.sub(r'\[PLOT_DATA:.*?\]', '[Visualização gerada com sucesso]', msg["details"]["result"])
+                    # st.text(raw_result)
+                    st.code(raw_result, language="text")
+            # Resposta do modelo
             st.markdown(msg["content"])
+            
+            # Gráfico gerado
             if "image" in msg:
                 st.image(base64.b64decode(msg["image"]))
+
 
 if st.session_state.graph_runner:
     st.info(f"Agente pronto! Faça perguntas sobre o arquivo `{uploaded_csv.name}`.")
@@ -81,18 +99,29 @@ if st.session_state.graph_runner:
         
         with st.chat_message("assistant"):
             with st.spinner("O agente está executando o workflow de análise..."):
-                chat_history = [msg["lc_message"] for msg in st.session_state.messages[:-1]]
+                # chat_history = [msg["lc_message"] for msg in st.session_state.messages[:-1]]
 
-                final_state = st.session_state.graph_runner(prompt, chat_history)
-                                
+                # final_state = st.session_state.graph_runner(prompt, chat_history)
+
+                # conclusion = final_state.get("conclusion", "Não foi possível gerar uma conclusão.")
+
+                # result_text = str(final_state.get("execution_result", ""))
+
+                final_state = st.session_state.graph_runner(prompt, st.session_state.get("messages", []))
+
                 conclusion = final_state.get("conclusion", "Não foi possível gerar uma conclusão.")
-                
-                result_text = str(final_state.get("execution_result", ""))
-                
+
+                execution_details = {
+                    "plan": final_state.get("plan", "Plano não disponível."),
+                    "code": final_state.get("code_to_execute", "Código não disponível."),
+                    "result": str(final_state.get("execution_result", "Resultado não disponível."))
+                }
+
+                result_text = execution_details["result"]
                 plot_match = re.search(r'\[PLOT_DATA:(.*?)\]', result_text)
 
-                # added 1001250314
-                assistant_message = {"role": "assistant", "content": conclusion, "lc_message": AIMessage(content=conclusion)}
+                # assistant_message = {"role": "assistant", "content": conclusion, "lc_message": AIMessage(content=conclusion)}
+                assistant_message = {"role": "assistant", "content": conclusion, "details": execution_details}
                 
                 if plot_match:
                     img_data = plot_match.group(1)
@@ -103,5 +132,6 @@ if st.session_state.graph_runner:
                     st.markdown(conclusion)
                 
                 st.session_state.messages.append(assistant_message)
+                st.rerun()
 else:
-    st.info("Por favor, configure o agente na barra lateral para começar a análise.")
+    st.info("Por favor, configure o agente na barra lateral (\">>>\") para começar a análise.")

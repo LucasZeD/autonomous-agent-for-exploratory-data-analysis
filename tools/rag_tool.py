@@ -61,8 +61,20 @@ def knowledge_base_search(query: str) -> str:
         persist_directory=VECTORSTORE_DIR,
         embedding_function=OpenAIEmbeddings()
     )
-    retriever = vectorstore.as_retriever()
+    # retriever = vectorstore.as_retriever()
+    # Buscando metadados da fonte
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
     docs = retriever.invoke(query)
     
-    context = "\n\n".join([doc.page_content for doc in docs])
+    # context = "\n\n".join([doc.page_content for doc in docs])
+    # Formatando a saíde com a fonte de dados
+    context = ""
+    for doc in docs:
+        # Extrair nome do arquivo
+        source = doc.metadata.get('source', 'N/A').split('/')[-1]
+        page = doc.metadata.get('page', 'N/A')
+        context += f"Fonte: {source}, Página: {page}\n"
+        context += f"Conteúdo: {doc.page_content}\n\n"
+    if not context:
+        return "Nenhum contexto relevante encontrado na base de conhecimento."
     return f"Contexto encontrado na base de conhecimento:\n{context}"

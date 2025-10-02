@@ -45,13 +45,24 @@ class PythonExecutorTool(BaseTool):
             with redirect_stdout(buffer):
                 exec(sanitized_code, globals(), local_scope)
             
-            output = buffer.getvalue()
+            output_parts = []
 
-            # Verifica se uma imagem foi gerada e a retorna
+            # 1. Captura a saída de prints
+            print_output = buffer.getvalue()
+            if print_output:
+                output_parts.append(print_output)
+            # 2. Captura o resultado númerico da variável 'result_data'
+            if 'result_data' in local_scope:
+                data_str = str(local_scope['result_data'])
+                output_parts.append(data_str)
+            # 3. Captura o grafico
             if 'fig_base64' in local_scope:
-                 return f"Plot gerado com sucesso.\n[PLOT_DATA:{local_scope['fig_base64']}]"
+                output_parts.append(f"Plot gerado com sucesso.\n[PLOT_DATA:{local_scope['fig_base64']}]")
             
-            return output if output else "Código executado com sucesso, sem saída de texto."
+            if not output_parts:
+                return "Código executado com sucesso, sem saída visual ou textual."
+            
+            return "\n\n".join(output_parts)
 
         except SecurityException as e:
             return f"Erro de Segurança: {e}"
@@ -59,5 +70,4 @@ class PythonExecutorTool(BaseTool):
             return f"Erro de Execução: {type(e).__name__} - {e}"
 
     def _arun(self, *args: Any, **kwargs: Any) -> Any:
-        # A execução assíncrona não é implementada para esta ferramenta
         raise NotImplementedError("A execução assíncrona não é suportada por esta ferramenta.")
