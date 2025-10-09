@@ -146,7 +146,8 @@ Fonte de dados: https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
 
 #### Detecção de Anomalias (Outliers):
 * Existem valores atípicos nos dados?
-* Como esses outliers afetam a análise?oPodem ser removidos, transformados ou investigados?
+* Como esses outliers afetam a análise?
+* Esses outliers podem ser removidos, transformados ou investigados?
 
 #### Relações entre Variáveis:
 * Como as variáveis estão relacionadas umas com as outras? (Gere Gráficos de dispersão, tabelas cruzadas)
@@ -163,30 +164,30 @@ Este projeto possui um roteiro claro para a implementação de práticas de IA R
     * **Exibir Raciocínio**: Utilizar um componente `st.expander` na interface para mostrar ao usuário o plano de análise, o código Python executado e o resultado bruto que fundamentou a resposta final.
     * **Citação de Fontes**: Aprimorar a ferramenta de RAG para retornar a fonte da informação (nome do arquivo, página), citando-a explicitamente na resposta quando o conhecimento externo for utilizado. -->
 
-### 2. Justiça e Mitigação de Viés (Fairness & Bias)
+### 1. Justiça e Mitigação de Viés (Fairness & Bias)
 * **Status Atual**: O agente analisa os dados "como estão" (`as is`), sem uma avaliação crítica sobre vieses inerentes.
 * **Próximos Passos**:
     * **Prompt Engineering**: Incluir instruções explícitas no prompt do sistema para que o LLM avalie e mencione potenciais vieses em suas conclusões.
     * **Ferramenta de Detecção de Viés**: Desenvolver uma nova ferramenta, utilizando bibliotecas como `Fairlearn`, para realizar uma análise preliminar de desequilíbrios estatísticos em atributos sensíveis do dataset.
 
-### 3. Privacidade (Privacy)
+### 2. Privacidade (Privacy)
 * **Status Atual**: O DataFrame é processado em memória e as chaves de API são gerenciadas de forma segura.
 * **Próximos Passos**:
     * **Ferramenta de Anonimização**: Adicionar um nó opcional no início do grafo para identificar e anonimizar Informações de Identificação Pessoal (PII) antes da análise
 
-### 4. Confiabilidade e Robustez (Reliability & Robustness)
+### 3. Confiabilidade e Robustez (Reliability & Robustness)
 * **Status Atual**: Em caso de erro na execução do código, o sistema retorna a mensagem de erro bruta ao usuário e para.
 * **Próximos Passos**:
     * **Ciclo de Auto-Correção**: Implementar um ciclo no grafo onde, em caso de falha, o nó de execução retorne ao nó de geração de código, informando a mensagem de erro. O LLM seria então instruído a corrigir o código anterior com base no erro.
     * **Validação de Código com AST**: Evoluir a sanitização de código de `regex` para uma análise via Árvore de Sintaxe Abstrata (`ast`), permitindo a criação de regras de segurança mais granulares e robustas.
 
-### 5. Logging e Auditoria
+### 4. Logging e Auditoria
 * **Status Atual**: O feedback de erros é reativo e exibido diretamente na interface em caso de falha. Não há um sistema persistente de logs para análise posterior ou auditoria.
 * **Próximos Passos**:
     * **Implementar Logging Estruturado**: Integrar uma biblioteca de logging para capturar eventos-chave da aplicação, como o início e o fim de cada nó do grafo, as decisões do planejador e o resultado (sucesso ou falha) da execução de ferramentas.
     * **Criar Trilha de Auditoria**: Utilizar os logs para construir uma trilha de auditoria completa para cada consulta do usuário. Isso é crucial para a depuração de comportamentos inesperados e para aumentar a transparência sobre as operações do agente.
 
-### 6. Adicionar Multiplos Agentes
+### 5. Adicionar Multiplos Agentes
 * **Status Atual**: O problema reside puramente na capacidade do modelo de linguagem local (gpt-oss:20b) de executar a tarefa final de síntese no `conclusion_node`. Mesmo recebendo o contexto perfeito (pergunta, plano e dados numéricos), o modelo falhou na tarefa de "formular uma conclusão". Em vez de interpretar os dados fornecidos, ele se perdeu, identificou um padrão estatístico vago e alucinou uma resposta completamente desconexa sobre distribuição binomial. Isso acontece porque modelos menores ou menos refinados, como muitos LLMs locais, são excelentes em tarefas estruturadas (como gerar código a partir de um prompt claro), mas podem ter dificuldade com tarefas que exigem um raciocínio mais abstrato (como "interprete estes resultados e escreva um parágrafo sobre eles").
 * **Próximos Passos**:
     * **Usar um Modelo Mais Forte para a Conclusão**: Em sistemas de agentes complexos, é comum usar modelos diferentes para tarefas diferentes (`agentic orchestration`). Como já foi implementado o LLMFactory será mais facil de implementar este processo, logo usando o modelo local (gpt-oss:20b) para as tarefas mais baratas e estruturadas (planejamento, geração de código) e um modelo mais poderoso para o conclusion_node, que exige mais raciocínio. Para um sistema completamente offline, utilizar gpts de diferentes tamanhos pode trazer um bom resultado.

@@ -55,9 +55,37 @@ class PythonExecutorTool(BaseTool):
             if 'result_data' in local_scope:
                 data_str = str(local_scope['result_data'])
                 output_parts.append(data_str)
-            # 3. Captura o grafico
+            # 3. Captura o grafico, se existir
+            # if 'fig_base64' in local_scope:
+            #     fig_data = local_scope['fig_base64']
+            #     fig_data_str = ""
+
+            #     # Garante que o dado final seja uma string decodificada.
+            #     if isinstance(fig_data, bytes):
+            #         fig_data_str = fig_data.decode('utf-8')
+            #     elif isinstance(fig_data, str):
+            #         # Se já for string (devido a um ambiente anômalo), usa diretamente.
+            #         fig_data_str = fig_data
+            #     else:
+            #         # Se for outro tipo, converte para string de forma segura.
+            #         fig_data_str = str(fig_data)
+                
+            #     output_parts.append(f"Plot gerado com sucesso.\n[PLOT_DATA:{fig_data_str}]")
             if 'fig_base64' in local_scope:
-                output_parts.append(f"Plot gerado com sucesso.\n[PLOT_DATA:{local_scope['fig_base64']}]")
+                fig_data = local_scope['fig_base64']
+                
+                # VERIFICAÇÃO ADICIONAL: Só processa se fig_data não for None e for do tipo bytes ou str
+                if fig_data and isinstance(fig_data, (bytes, str)):
+                    fig_data_str = ""
+
+                    if isinstance(fig_data, bytes):
+                        fig_data_str = fig_data.decode('utf-8')
+                    else: # Já é uma string
+                        fig_data_str = fig_data
+                    
+                    # Garante que a string não esteja vazia antes de adicionar o placeholder
+                    if fig_data_str.strip():
+                        output_parts.append(f"Plot gerado com sucesso.\n[PLOT_DATA:{fig_data_str}]")
             
             if not output_parts:
                 return "Código executado com sucesso, sem saída visual ou textual."

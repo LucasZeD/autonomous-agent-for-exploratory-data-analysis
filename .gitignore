@@ -22,7 +22,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-
 # Segredos
 .env
 secrets.toml
@@ -66,3 +65,7 @@ Desktop.ini
 /data_raw/
 archive.zip
 *.csv
+
+# Custom
+/enunciado
+.zip

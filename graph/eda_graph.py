@@ -14,18 +14,26 @@ import re
 def plan_node(state: EdaGraphState, llm):
     """Nó que gera um plano de análise com base na pergunta."""
     prompt = PromptTemplate.from_template(
-        """Você é um planejador especialista em análise de dados. Dada a pergunta do usuário
-        e as primeiras linhas de um DataFrame, crie um plano passo a passo conciso para
-        responder à pergunta. Descreva cada passo de forma clara.
+        """Você é um planejador especialista em análise de dados. Dada a pergunta do usuário,
+        o histórico da nossa conversa anterior e as primeiras linhas de um DataFrame,
+        crie um plano passo a passo conciso para responder à pergunta.
+        Leve em conta as análises já realizadas no histórico para evitar repetições.
 
-        Pergunta: {question}
+        Histórico da Conversa:
+        {chat_history}
+
+        Pergunta do Usuário: {question}
         Cabeçalho do DataFrame:
         {df_head}
 
         Plano:"""
     )
     chain = prompt | llm
-    plan = chain.invoke({"question": state["question"], "df_head": state["df_head"]}).content
+    plan = chain.invoke({
+        "question": state["question"],
+        "df_head": state["df_head"],
+        "chat_history": state["chat_history"]  # <-- Adicione esta linha
+    }).content
     return {"plan": plan}
 
 def code_generation_node(state: EdaGraphState, llm):
@@ -36,24 +44,27 @@ def code_generation_node(state: EdaGraphState, llm):
         O script deve ser completo e autossuficiente para responder à pergunta do usuário.
 
         **--- REGRAS CRÍTICAS DE SAÍDA ---**
+        - **Para `sklearn.manifold.TSNE`**: Use o parâmetro `max_iter` em vez do obsoleto `n_iter` (ex: `TSNE(..., max_iter=1000)`).
+        
         Seu script DEVE produzir uma ou ambas as seguintes variáveis como resultado final:
         1.  `result_data`: Use esta variável para armazenar qualquer resultado numérico ou textual final (ex: um DataFrame, uma contagem, uma correlação).
             - Exemplo: `result_data = df['coluna'].describe()`
-        2.  `fig_base64`: Se o plano envolver a criação de um gráfico, esta variável DEVE conter a imagem do gráfico codificada em base64.
-            - **NUNCA use `plt.show()`**.
+        2.  **Para Gráficos**: 
+            **NUNCA use `plt.show()`**.
+            Use plt.figure() para iniciar um novo gráfico.
+            `fig_base64`: Se o plano envolver a criação de um gráfico, esta variável DEVE conter a imagem do gráfico codificada em base64.
             - Siga este exemplo de código para gerar `fig_base64`:
                 ```python
                 import io
                 import base64
                 import matplotlib.pyplot as plt
-                
                 plt.figure()
-                # --- SEU CÓDIGO DE PLOTAGEM AQUI ---
-                
+                # ... seu código de plotagem ...
                 buf = io.BytesIO()
                 plt.savefig(buf, format='png')
                 buf.seek(0)
-                fig_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                # Apenas codifique para base64. A ferramenta cuidará da decodificação.
+                fig_base64 = base64.b64encode(buf.read())
                 plt.close()
                 ```
 
@@ -93,20 +104,25 @@ def conclusion_node(state: EdaGraphState, llm):
     """Nó que gera a conclusão final para o usuário."""
     prompt = PromptTemplate.from_template(
         """Você é um analista de dados especialista. Com base na pergunta original,
-        no plano executado e nos resultados obtidos, formule uma conclusão clara e concisa
-        para o usuário. Se os resultados incluírem um gráfico, mencione-o.
+        no plano executado, nos resultados obtidos e no histórico da nossa conversa,
+        formule uma conclusão clara, objetiva e concisa para o usuário.
+        Se a pergunta for sobre conclusões gerais, use o histórico para sintetizar as descobertas.
+
+        Histórico da Conversa:
+        {chat_history}
 
         Pergunta Original: {question}
-        Plano: {plan}
+        Plano Executado: {plan}
         Resultado da Execução: {result}
 
-        Conclusão:"""
+        Conclusão Final:"""
     )
     chain = prompt | llm
     conclusion = chain.invoke({
         "question": state["question"],
         "plan": state["plan"],
-        "result": state["execution_result"]
+        "result": state["execution_result"],
+        "chat_history": state["chat_history"]  # <-- Adicione esta linha
     }).content
     return {"conclusion": conclusion}
 

@@ -9,6 +9,7 @@ from llm.llm_factory import LLMFactory
 from graph.eda_graph import create_eda_graph
 from tools.rag_tool import setup_vectorstore
 from langchain_core.messages import AIMessage, HumanMessage
+from PIL import UnidentifiedImageError
 
 st.set_page_config(page_title="Agente de Análise de CSV", layout="wide")
 
@@ -85,8 +86,11 @@ def display_chat_history():
             st.markdown(msg["content"])
             
             # Gráfico gerado
-            if "image" in msg:
-                st.image(base64.b64decode(msg["image"]))
+            if "image" in msg and msg["image"]:
+                try:
+                    st.image(base64.b64decode(msg["image"]))
+                except Exception as e:
+                    st.warning(f"Falha ao renderizar imagem: {e}")
 
 
 if st.session_state.graph_runner:
@@ -124,13 +128,26 @@ if st.session_state.graph_runner:
                 # assistant_message = {"role": "assistant", "content": conclusion, "lc_message": AIMessage(content=conclusion)}
                 assistant_message = {"role": "assistant", "content": conclusion, "details": execution_details}
                 
+                # if plot_match:
+                #     img_data = plot_match.group(1)
+                #     st.markdown(conclusion)
+                #     st.image(base64.b64decode(img_data))
+                #     assistant_message["image"] = img_data
+                # else:
+                #     st.markdown(conclusion)
+                st.markdown(conclusion)
                 if plot_match:
-                    img_data = plot_match.group(1)
-                    st.markdown(conclusion)
-                    st.image(base64.b64decode(img_data))
+                    img_data = plot_match.group(1).strip()
                     assistant_message["image"] = img_data
-                else:
-                    st.markdown(conclusion)
+                    # Tenta renderizar a imagem, tratando possíveis erros
+                    try:
+                        # Verifica se img_data não está vazio antes de tentar decodificar
+                        if img_data:
+                            st.image(base64.b64decode(img_data))
+                        else:
+                            st.warning("O agente indicou a geração de um gráfico, mas os dados da imagem estão ausentes.")
+                    except (base64.binascii.Error, UnidentifiedImageError):
+                        st.warning("Não foi possível renderizar a visualização. O agente pode ter retornado um resultado textual em vez de um gráfico.")
                 
                 st.session_state.messages.append(assistant_message)
                 st.rerun()
