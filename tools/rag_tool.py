@@ -1,12 +1,12 @@
 # /tools/rag_tool.py
 
-from langchain_chroma import Chroma
-from langchain_openai.embeddings import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.tools import tool
 import os
 import streamlit as st
+from langchain_chroma import Chroma
+from langchain_core.tools import tool
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 VECTORSTORE_DIR = "vectorstore_db"
 

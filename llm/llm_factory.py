@@ -45,7 +45,7 @@ class LLMFactory:
             curl -H "Content-Type: application/json" "https://generativelanguage.googleapis.com/v1/models?key=YOUR_API_KEY"
             ```
             ```linux/macos
-            curl -H "Content-Type: application/json" \ "https://generativelanguage.googleapis.com/v1/models?key=YOUR_API_KEY"
+            curl -H "Content-Type: application/json" \ "[https://generativelanguage.googleapis.com/v1/models?key=YOUR_API_KEY](https://generativelanguage.googleapis.com/v1/models?key=YOUR_API_KEY)"
             ```
             
             Current available models (as of 2024-10):
